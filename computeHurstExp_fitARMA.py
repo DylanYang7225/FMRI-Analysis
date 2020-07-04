@@ -100,16 +100,6 @@ for mat_file in mat_files:
 
 
 # # Fitting ARMA Models
-
-# order_and_weight = models_weights[region] stores the weights of ARMA models for a subject
-order_and_weight = [None for _ in range(len(subject_ts[0][0]))]
-# Rscore = Rscore[region] stores the Pearson correlation between fitted ARMA models and original time-series
-Rscore = [None for _ in range(len(subject_ts[0][0]))] 
-# ensemble_model = ensemble_model[region] stores the ensemble ARMA models for each resion
-ensemble_ts = [None for _ in range(len(subject_ts[0][0]))] 
-# Each of the model orders, paired with its model_weights as a tuple, Rscore and ensemble_model will be updated in each loop step and stored in files before they get updated
-
-
 # The overall idea is to
 # 
 # (1) fit an array of ARMA$(p,d,q)$ models with $1\leq p\leq p_{max}$ and $0\leq q \leq q_{max}$;
@@ -139,6 +129,14 @@ print('Computation started at '+ str(current_time))
 p_max = 6
 q_max = 6
 for sub in range(41): # only 41 subjects in each stack
+    # order_and_weight = models_weights[region] stores the weights of ARMA models in a subject
+    order_and_weight = [None for _ in range(len(subject_ts[0][0]))]
+    # Rscore = Rscore[region] stores the Pearson correlation between fitted ARMA models and original time-series
+    Rscore = [None for _ in range(len(subject_ts[0][0]))]
+    # ensemble_model = ensemble_model[region] stores the ensemble ARMA models for each region in a subject
+    ensemble_ts = [None for _ in range(len(subject_ts[0][0]))]
+    # Each of the model orders, paired with its model_weights as a tuple, Rscore and ensemble_model will be updated in each loop step and stored in files before they get updated   
+    
     for reg in range(160):
         ts = subject_ts[sub][:,reg]
         #PACF=stattools.pacf(ts) # use partial auto-correlation to determine the differencing order
@@ -152,8 +150,8 @@ for sub in range(41): # only 41 subjects in each stack
         for p in range(1,p_max):
             for q in range(0,q_max):
                 try:
-                    fitted_model = ARIMA(ts,order=(p,d,q)).fit(disp=-1)
-                    predictions.append(fitted_model.predict(start=1,end=1200))
+                    fitted_model = SARIMAX(ts,order=(p,d,q),enforce_invertibility=False).fit(disp=-1)
+                    predictions.append(fitted_model.predict())
                     orders.append((p,d,q))
                     AIC.append(fitted_model.aic)
                     weights = computeWeights(AIC)
